@@ -1,15 +1,5 @@
 # 🏠 Fork U-House Card
 
-> [!TIP]
-> **🚀 NEW! AUTOMATIC ASSET GENERATOR**
-> 
-> You don't need to manually create 40+ images! 
-> We have created a **Free AI Tool** that generates all weather, season, and day/night variants for you in minutes.
-> 
-> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/silasmariusz/fork_u-house_card/blob/main/colab_generator/generate_house_assets.ipynb) <br> *(Click above to start generating for free!)*
-
-(I'm so lazy with coding so I asked Gemini to write this card :P Yeap)
-
 ## REQUIRED: 
 1. Add `season.season` in integrations.
 2. Add `sun.sun` sensor in integrations.
@@ -23,6 +13,9 @@
 I know it's a lot, but if you don't use them then you did not unlock secret items. The journey will start now ;)
 
 ![msedge_bNu5APEUJq](https://github.com/user-attachments/assets/8405dc20-4e71-4588-a56a-044292b8ab87)
+<img width="1344" ![ezgif-84e148d15543d035](https://github.com/user-attachments/assets/7ab21adf-3d0d-4582-a500-dd3dad6949f4)
+height="768" alt="spring_lightning_day" src="https://github.com/user-attachments/assets/3386ac9c-4ff5-47a6-979a-ac8bb929eefa" />
+<img width="1344" height="768" alt="_master_reference" src="https://github.com/user-attachments/assets/faa44ef8-a15f-4b3f-93e8-2db59b9cab4a" />
 
 An advanced, glassmorphism-styled Home Assistant Lovelace card designed for monitoring home climate, weather conditions, and environmental hazards.
 
@@ -248,4 +241,27 @@ Fork my repo on GitHub! Necessary because would be nice if you could edit text s
 https://github.com/silasmariusz/fork_u-house_card
 
 Enjoy
+
+
+> [!TIP]
+> **🚀 NEW! AUTOMATIC ASSET GENERATOR**
+> 
+> You don't need to manually create 40+ images! 
+> We have created a **Free AI Tool** that generates all weather, season, and day/night variants for you in minutes.
+> 
+> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/silasmariusz/fork_u-house_card/blob/main/colab_generator/generate_house_assets.ipynb) <br> *(Click above to start generating for free!)*
+>
+> Howto:
+> ![ezgif-84e148d15543d035](https://github.com/user-attachments/assets/97116b93-1bc0-44ff-9ddd-b01cb8389c41)
+>
+> Result:
+> <img width="1344" height="768" alt="winter_lightning_day" src="https://github.com/user-attachments/assets/26b3a9fa-f3ad-48c3-9ec6-ea43631a1614" />
+>
+> Source data (google maps, and streatview)
+> <img width="646" height="349" alt="roof" src="https://github.com/user-attachments/assets/5029ba36-28d9-4630-8d0a-cd20161ad65e" />
+![optional](https://github.com/user-attachments/assets/c6e87b26-6a0a-4e23-b5ea-b67d547e5c3e)
+![ang3](https://github.com/user-attachments/assets/ccdf5ff7-f45f-4761-a081-9e5d279f9381)
+![ang2](https://github.com/user-attachments/assets/02c2b669-5126-41c8-9b81-3aa998973e4f)
+![ang1](https://github.com/user-attachments/assets/30630e89-f732-4a04-8e5a-631dcc8be960)
+
 
