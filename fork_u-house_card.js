@@ -429,10 +429,12 @@ class ForkUHouseCard extends HTMLElement {
     }
 
     _formatValue(val, unit) {
+      if (val == null || isNaN(val)) return `--${unit}`;
       switch(unit) {
         case '°F': return `${val.toFixed(0)}°F`;
         case '°C': return `${val.toFixed(1)}°C`;
         case 'kW': return `${val.toFixed(2)}kW`;
+        case 'W':  return `${val.toFixed(0)}W`;
         case '%':  return `${val.toFixed(0)}%`;
         default:   return `${val.toFixed(1)}${unit}`;
       }
@@ -443,14 +445,17 @@ class ForkUHouseCard extends HTMLElement {
       if (colorMode === 'invert') {
         switch(unit) {
           case 'kW':
-            if (val >= 3) return 'is-optimal'; if (val >= 1) return 'is-warm';
-            if (val > 0) return 'is-cold'; return 'is-cold';
+            if (val >= 3) return 'is-optimal'; if (val >= 1) return 'is-cold';
+            if (val > 0) return 'is-warm'; return 'is-hot';
+          case 'W':
+            if (val >= 3000) return 'is-optimal'; if (val >= 1000) return 'is-cold';
+            if (val > 0) return 'is-warm'; return 'is-hot';
           case '%':
-            if (val >= 80) return 'is-optimal'; if (val >= 50) return 'is-warm';
-            if (val >= 20) return 'is-cold'; return 'is-hot';
+            if (val >= 80) return 'is-optimal'; if (val >= 50) return 'is-cold';
+            if (val >= 20) return 'is-warm'; return 'is-hot';
           default:
-            if (val >= 75) return 'is-optimal'; if (val >= 50) return 'is-warm';
-            if (val >= 25) return 'is-cold'; return 'is-hot';
+            if (val >= 75) return 'is-optimal'; if (val >= 50) return 'is-cold';
+            if (val >= 25) return 'is-warm'; return 'is-hot';
         }
       }
       // normal mode: higher value = worse (red)
@@ -463,6 +468,9 @@ class ForkUHouseCard extends HTMLElement {
           if (val < 25) return 'is-warm'; return 'is-hot';
         case 'kW':
           if (val < 1) return 'is-optimal'; if (val < 3) return 'is-warm';
+          return 'is-hot';
+        case 'W':
+          if (val < 1000) return 'is-optimal'; if (val < 3000) return 'is-warm';
           return 'is-hot';
         case '%':
           if (val < 20) return 'is-cold'; if (val < 50) return 'is-optimal';
