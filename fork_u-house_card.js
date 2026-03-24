@@ -374,12 +374,34 @@ class ForkUHouseCard extends HTMLElement {
       }
     }
 
+    _getDefaultBadgePosition(idx, total) {
+        const SLOTS = [
+            { x: 14, y: 14 },   // top-left
+            { x: 50, y: 10 },   // top-center
+            { x: 86, y: 14 },   // top-right
+            { x:  9, y: 50 },   // mid-left
+            { x: 91, y: 50 },   // mid-right
+            { x: 14, y: 82 },   // bottom-left
+            { x: 86, y: 82 },   // bottom-right
+            { x: 30, y: 88 },   // lower-center-L
+            { x: 70, y: 88 },   // lower-center-R
+        ];
+        return SLOTS[idx % SLOTS.length];
+    }
+
     _updateBadges(rooms) {
       const container = this.shadowRoot.querySelector('.badges-layer');
       if (!container) return;
+      let validIdx = 0;
+      const validTotal = rooms.filter(r => r.valid && r.value !== 0).length;
       container.innerHTML = rooms.map((room, idx) => {
         if (!room.valid || room.value === 0) return '';
-        const top = room.y ?? 50; const left = room.x ?? 50;
+        const _pos = (room.x == null && room.y == null)
+            ? this._getDefaultBadgePosition(validIdx, validTotal)
+            : { x: room.x ?? 50, y: room.y ?? 50 };
+        const top = _pos.y;
+        const left = _pos.x;
+        validIdx++;
         const unit = room.unit || '°C';
         const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
@@ -629,12 +651,12 @@ class ForkUHouseCard extends HTMLElement {
           .badges-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
           .badge {
               position: absolute; transform: translate(-50%, -50%);
-              padding: 6px 12px;
+              padding: 8px 14px;
               border-radius: 16px;
-              background: rgba(20, 20, 25, 0.55);
+              background: linear-gradient(135deg, rgba(28, 28, 34, 0.70) 0%, rgba(20, 20, 25, 0.65) 100%);
               backdrop-filter: blur(10px);
               border: 1px solid rgba(255,255,255,0.12);
-              box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+              box-shadow: 0 4px 10px rgba(0,0,0,0.45);
               display: flex; align-items: center; gap: 8px; pointer-events: auto; white-space: nowrap;
           }
           .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -642,21 +664,25 @@ class ForkUHouseCard extends HTMLElement {
           .is-optimal .badge-dot { background: var(--color-opt); box-shadow: 0 0 5px var(--color-opt); }
           .is-warm .badge-dot { background: var(--color-warm); box-shadow: 0 0 5px var(--color-warm); }
           .is-hot .badge-dot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
-          .badge.unit-kw { background: rgba(40, 20, 60, 0.55); border-color: rgba(160, 120, 255, 0.25); }
-          .badge.unit-pct { background: rgba(15, 40, 45, 0.55); border-color: rgba(80, 220, 220, 0.25); }
+          .badge.unit-kw { background: linear-gradient(135deg, rgba(50, 25, 75, 0.70) 0%, rgba(40, 20, 60, 0.65) 100%); border-color: rgba(160, 120, 255, 0.25); }
+          .badge.unit-pct { background: linear-gradient(135deg, rgba(20, 50, 55, 0.70) 0%, rgba(15, 40, 45, 0.65) 100%); border-color: rgba(80, 220, 220, 0.25); }
+          .is-cold    { border-color: rgba(96,165,250,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(96,165,250,0.18); }
+          .is-optimal { border-color: rgba(52,211,153,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(52,211,153,0.18); }
+          .is-warm    { border-color: rgba(251,191,36,0.25);  box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(251,191,36,0.18); }
+          .is-hot     { border-color: rgba(248,113,113,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(248,113,113,0.18); }
           .badge[data-room-idx] { cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
           .badge[data-room-idx]:hover { border-color: rgba(255,255,255,0.35); box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.08); background: rgba(30, 30, 35, 0.65); }
           .badge[data-room-idx]:active { background: rgba(40, 40, 50, 0.7); border-color: rgba(255,255,255,0.45); }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
-          .badge-name { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
-          .badge-val { font-size: 0.80rem; font-weight: 700; color: #fff; }
+          .badge-name { font-size: 0.65rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
+          .badge-val { font-size: 0.90rem; font-weight: 700; color: #fff; }
           
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
-              background: rgba(10, 10, 15, 0.25); backdrop-filter: blur(15px);
-              border-top: 1px solid rgba(255,255,255,0.05); padding: 6px 16px;
+              background: rgba(10, 10, 15, 0.40); backdrop-filter: blur(18px);
+              border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 16px;
               display: flex; align-items: center; gap: 12px; box-sizing: border-box; transition: background 0.3s;
-              min-height: 32px;
+              min-height: 38px;
           }
           .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.65); border-top-color: var(--color-warm); }
           .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.65); border-top-color: var(--color-hot); }
@@ -678,8 +704,8 @@ class ForkUHouseCard extends HTMLElement {
           }
           .value-pill b { color: #fff; }
           .median-pill {
-              display: none; /* Disabled mediana pill */
-              /* Disabled mediana pill */
+              display: inline-flex;
+              align-items: center;
               background: rgba(20, 20, 25, 0.75); 
               backdrop-filter: blur(8px);
               border: 1px solid rgba(255,255,255,0.15);
@@ -698,7 +724,7 @@ class ForkUHouseCard extends HTMLElement {
           
           /* Allow multi-line text for verbose AI messages */
           .footer-content { 
-              font-size: 0.85rem; color: #ccc; 
+              font-size: 0.85rem; color: #ddd;
               white-space: normal; line-height: 1.8; 
               display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; 
               /*
