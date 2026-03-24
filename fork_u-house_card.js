@@ -603,8 +603,8 @@ class ForkUHouseCard extends HTMLElement {
           .is-hot     { border-color: rgba(248,113,113,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(248,113,113,0.18); }
           .badge[data-room-idx] { cursor: pointer; }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
-          .badge-name { font-size: 0.60rem; color: #aaa; text-transform: uppercase; margin-bottom: 1px; white-space: nowrap; }
-          .badge-val { font-size: 0.82rem; font-weight: 700; color: #fff; }
+          .badge-name { font-size: 0.65rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
+          .badge-val { font-size: 0.90rem; font-weight: 700; color: #fff; }
           
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
