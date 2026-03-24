@@ -4,7 +4,6 @@
  * * FEATURE: Pollen support restored & integrated into advice logic.
  * * FEATURE: Wind Chill logic (Wind + Cold temp = specific advice).
  * * FEATURE: Badge tap_action support (navigate, more-info, url, call-service, none).
- * * FEATURE: Dynamic badge names via name_entity / name_template.
  * * VISUALS: Prism Classic (Stars, Fog, No-Glow Rain) + Gaming Ambient Mode.
  */
 
@@ -146,7 +145,6 @@ class ForkUHouseCard extends HTMLElement {
   
     set hass(hass) {
       this._hass = hass;
-      this._subscribeTemplates();
       this._updateData();
     }
 
@@ -169,11 +167,6 @@ class ForkUHouseCard extends HTMLElement {
     disconnectedCallback() {
       if (this._resizeObserver) this._resizeObserver.disconnect();
       if (this._animationFrame) cancelAnimationFrame(this._animationFrame);
-      // Cleanup template subscriptions
-      if (this._templateSubs) {
-        Object.values(this._templateSubs).forEach(s => s.unsub && s.unsub());
-        this._templateSubs = {};
-      }
     }
 
      // --- NOWA LOGIKA WYBORU OBRAZKA ---
@@ -228,7 +221,7 @@ class ForkUHouseCard extends HTMLElement {
             const configKey     = `img_${season}_${timeOfDay}_${weatherSuffix}`;
             const configKey_alt = `img_${season}_${weatherSuffix}_${timeOfDay}`;
             
-            // overcast 默认启用，其余需在 YAML 中配置为 true
+            // overcast is enabled by default; others require explicit config
             if (weatherSuffix === 'overcast' || this._config[configKey] === true || this._config[configKey_alt] === true) {
                 return `${path}${season}_${weatherSuffix}_${timeOfDay}.png`;
             }
@@ -284,45 +277,7 @@ class ForkUHouseCard extends HTMLElement {
       }
     }
   
-    _isTemplate(str) {
-      return typeof str === 'string' && str.includes('{{') && str.includes('}}');
-    }
-
-    _subscribeTemplates() {
-      if (!this._hass || !this._config) return;
-      if (!this._templateResults) this._templateResults = {};
-
-      const rooms = this._config.rooms || [];
-      rooms.forEach((room, idx) => {
-        if (!this._isTemplate(room.name)) return;
-        const key = `name_${idx}`;
-        // Already subscribed with same template
-        if (this._templateSubs && this._templateSubs[key]?.template === room.name) return;
-
-        if (!this._templateSubs) this._templateSubs = {};
-        // Unsubscribe previous if template changed
-        if (this._templateSubs[key]?.unsub) {
-          this._templateSubs[key].unsub();
-        }
-
-        this._hass.connection.subscribeMessage(
-          (result) => {
-            this._templateResults[key] = result.result;
-            this._updateData();
-          },
-          { type: 'render_template', template: room.name }
-        ).then(unsub => {
-          this._templateSubs[key] = { unsub, template: room.name };
-        });
-      });
-    }
-
-    _resolveBadgeName(room, idx) {
-      // Jinja2 template in name field
-      if (this._isTemplate(room.name)) {
-        const key = `name_${idx}`;
-        return this._templateResults?.[key] || room.name;
-      }
+    _resolveBadgeName(room) {
       return room.name || '';
     }
 
@@ -412,7 +367,7 @@ class ForkUHouseCard extends HTMLElement {
         const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
         const displayVal = this._formatValue(room.value, unit);
-        const badgeName = this._resolveBadgeName(room, idx);
+        const badgeName = this._resolveBadgeName(room);
         return `
           <div class="badge ${colorClass} ${unitClass}" data-room-idx="${idx}" style="top: ${top}%; left: ${left}%;">
             <div class="badge-dot"></div>
