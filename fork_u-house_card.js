@@ -629,22 +629,22 @@ class ForkUHouseCard extends HTMLElement {
               position: absolute; transform: translate(-50%, -50%);
               padding: 6px 12px;
               border-radius: 16px;
-              background: rgba(20, 20, 25, 0.75); 
-              backdrop-filter: blur(8px);
-              border: 1px solid rgba(255,255,255,0.15);
+              background: rgba(20, 20, 25, 0.55);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255,255,255,0.12);
               box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-              display: flex; align-items: center; gap: 8px; pointer-events: auto;
+              display: flex; align-items: center; gap: 8px; pointer-events: auto; white-space: nowrap;
           }
           .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
           .is-cold .badge-dot { background: var(--color-cold); box-shadow: 0 0 5px var(--color-cold); }
           .is-optimal .badge-dot { background: var(--color-opt); box-shadow: 0 0 5px var(--color-opt); }
           .is-warm .badge-dot { background: var(--color-warm); box-shadow: 0 0 5px var(--color-warm); }
           .is-hot .badge-dot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
-          .badge.unit-kw { background: rgba(40, 20, 60, 0.75); border-color: rgba(160, 120, 255, 0.25); }
-          .badge.unit-pct { background: rgba(15, 40, 45, 0.75); border-color: rgba(80, 220, 220, 0.25); }
+          .badge.unit-kw { background: rgba(40, 20, 60, 0.55); border-color: rgba(160, 120, 255, 0.25); }
+          .badge.unit-pct { background: rgba(15, 40, 45, 0.55); border-color: rgba(80, 220, 220, 0.25); }
           .badge[data-room-idx] { cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
-          .badge[data-room-idx]:hover { border-color: rgba(255,255,255,0.35); box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.08); background: rgba(30, 30, 35, 0.85); }
-          .badge[data-room-idx]:active { background: rgba(40, 40, 50, 0.9); border-color: rgba(255,255,255,0.45); }
+          .badge[data-room-idx]:hover { border-color: rgba(255,255,255,0.35); box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.08); background: rgba(30, 30, 35, 0.65); }
+          .badge[data-room-idx]:active { background: rgba(40, 40, 50, 0.7); border-color: rgba(255,255,255,0.45); }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
           .badge-name { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
           .badge-val { font-size: 0.80rem; font-weight: 700; color: #fff; }
@@ -652,9 +652,9 @@ class ForkUHouseCard extends HTMLElement {
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
               background: rgba(10, 10, 15, 0.25); backdrop-filter: blur(15px);
-              border-top: 1px solid rgba(255,255,255,0.05); padding: 8px 16px;
+              border-top: 1px solid rgba(255,255,255,0.05); padding: 6px 16px;
               display: flex; align-items: center; gap: 12px; box-sizing: border-box; transition: background 0.3s;
-              min-height: 40px;
+              min-height: 32px;
           }
           .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.65); border-top-color: var(--color-warm); }
           .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.65); border-top-color: var(--color-hot); }
