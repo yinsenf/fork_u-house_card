@@ -253,7 +253,8 @@ class ForkUHouseCard extends HTMLElement {
         return { ...r, value: v, valid: !isNaN(v) };
       });
       
-      const weighted = roomsData.filter(r => r.valid && (r.weight === undefined || r.weight > 0)).map(r => r.value).sort((a,b)=>a-b);
+      const tempUnits = ['°C', '°F'];
+      const weighted = roomsData.filter(r => r.valid && (r.weight === undefined || r.weight > 0) && tempUnits.includes(r.unit || '°C')).map(r => r.value).sort((a,b)=>a-b);
       let median = 0;
       if (weighted.length > 0) {
         const mid = Math.floor(weighted.length/2);
@@ -277,22 +278,66 @@ class ForkUHouseCard extends HTMLElement {
       const container = this.shadowRoot.querySelector('.badges-layer');
       if (!container) return;
       container.innerHTML = rooms.map(room => {
-        if (!room.valid) return '';
+        if (!room.valid || room.value === 0) return '';
         const top = room.y ?? 50; const left = room.x ?? 50;
-        const colorClass = this._getTempColorClass(room.value);
+        const unit = room.unit || '°C';
+        const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
+        const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
+        const displayVal = this._formatValue(room.value, unit);
         return `
-          <div class="badge ${colorClass}" style="top: ${top}%; left: ${left}%;">
+          <div class="badge ${colorClass} ${unitClass}" style="top: ${top}%; left: ${left}%;">
             <div class="badge-dot"></div>
             <div class="badge-content">
               <span class="badge-name">${room.name}</span>
-              <span class="badge-val">${room.value.toFixed(1)}°</span>
+              <span class="badge-val">${displayVal}</span>
             </div>
           </div>`;
       }).join('');
     }
-    
-    _getTempColorClass(t) {
-      if (t < 19) return 'is-cold'; if (t < 23) return 'is-optimal'; if (t < 25) return 'is-warm'; return 'is-hot';
+
+    _formatValue(val, unit) {
+      switch(unit) {
+        case '°F': return `${val.toFixed(0)}°F`;
+        case '°C': return `${val.toFixed(1)}°C`;
+        case 'kW': return `${val.toFixed(2)}kW`;
+        case '%':  return `${val.toFixed(0)}%`;
+        default:   return `${val.toFixed(1)}${unit}`;
+      }
+    }
+
+    _getColorClass(val, unit, colorMode) {
+      // invert mode: higher value = better (green), lower = worse (red)
+      if (colorMode === 'invert') {
+        switch(unit) {
+          case 'kW':
+            if (val >= 3) return 'is-optimal'; if (val >= 1) return 'is-warm';
+            if (val > 0) return 'is-cold'; return 'is-cold';
+          case '%':
+            if (val >= 80) return 'is-optimal'; if (val >= 50) return 'is-warm';
+            if (val >= 20) return 'is-cold'; return 'is-hot';
+          default:
+            if (val >= 75) return 'is-optimal'; if (val >= 50) return 'is-warm';
+            if (val >= 25) return 'is-cold'; return 'is-hot';
+        }
+      }
+      // normal mode: higher value = worse (red)
+      switch(unit) {
+        case '°F':
+          if (val < 66) return 'is-cold'; if (val < 73) return 'is-optimal';
+          if (val < 77) return 'is-warm'; return 'is-hot';
+        case '°C':
+          if (val < 19) return 'is-cold'; if (val < 23) return 'is-optimal';
+          if (val < 25) return 'is-warm'; return 'is-hot';
+        case 'kW':
+          if (val < 1) return 'is-optimal'; if (val < 3) return 'is-warm';
+          return 'is-hot';
+        case '%':
+          if (val < 20) return 'is-cold'; if (val < 50) return 'is-optimal';
+          if (val < 80) return 'is-warm'; return 'is-hot';
+        default:
+          if (val < 19) return 'is-cold'; if (val < 23) return 'is-optimal';
+          if (val < 25) return 'is-warm'; return 'is-hot';
+      }
     }
 
     _handleGamingMode() {
@@ -313,7 +358,7 @@ class ForkUHouseCard extends HTMLElement {
         return isNight;
     }
 
-    // --- AI STATUS LOGIC (Detailed & Explained) ---
+    // --- STATUS LOGIC (weather API forecast kept, AI narratives removed) ---
     _generateAIStatus(median) {
         const wObj = this._hass.states[this._config.weather_entity];
         if (!wObj) return;
@@ -321,18 +366,17 @@ class ForkUHouseCard extends HTMLElement {
         const condition = this._config.test_weather_state || wObj.state;
         const temp = wObj.attributes.temperature;
         const forecast = wObj.attributes.forecast || [];
-        
-        // Sensory
+        const isFahrenheit = wObj.attributes?.temperature_unit === '°F';
+        const tempUnit = isFahrenheit ? '°F' : '°C';
+
         const aqiVal = this._getStateVal(this._config.aqi_entity);
         const uvVal = this._getStateVal(this._config.uv_entity);
         const { speed: windSpeed } = this._getWindData();
-        
-        // Pollen Logic
+
         let isHighPollen = false;
         if (this._config.pollen_entity) {
             const pState = this._hass.states[this._config.pollen_entity]?.state;
             if (pState) {
-                // Obsługa tekstowa (high) lub liczbowa (>50)
                 if (['high', 'very_high', 'extreme', 'red'].includes(pState.toLowerCase())) isHighPollen = true;
                 if (!isNaN(parseFloat(pState)) && parseFloat(pState) > 50) isHighPollen = true;
             }
@@ -340,77 +384,37 @@ class ForkUHouseCard extends HTMLElement {
 
         let msg = "";
         let level = "normal";
-
-        // Check for Gaming Mode
         const isGaming = this._handleGamingMode();
 
-        // --- HIERARCHIA WAŻNOŚCI ---
-        
-        // 1. ZAGROŻENIE ŻYCIA (Burze)
+        // --- Priority: only alerts, no advice ---
         if (['lightning', 'lightning-rainy', 'hail'].includes(condition)) {
-            msg = this._t('alert_storm'); 
+            msg = this._t('alert_storm');
             level = "danger";
         }
-        // 2. ZDROWIE: SMOG
         else if (aqiVal !== null && aqiVal > 50) {
-             if (aqiVal > 100) {
-                 msg = this._t('alert_aqi_bad', {val: aqiVal});
-                 level = "danger";
-             } else {
-                 msg = this._t('alert_aqi_mod', {val: aqiVal});
-                 level = "warn";
-             }
+            if (aqiVal > 100) {
+                msg = this._t('alert_aqi_bad', {val: aqiVal});
+                level = "danger";
+            } else {
+                msg = this._t('alert_aqi_mod', {val: aqiVal});
+                level = "warn";
+            }
         }
-        // 3. ZDROWIE: PYŁKI
         else if (isHighPollen) {
             msg = this._t('alert_pollen');
             level = "warn";
         }
-        // 4. PLANOWANIE: NADCHODZĄCY DESZCZ/ŚNIEG
-        else {
-            const nextRain = forecast.slice(0, 3).find(f => ['rainy', 'pouring', 'snowy'].includes(f.condition) || (f.precipitation > 0));
-            
-            // Jeśli ma padać w ciągu 3h
-            if (nextRain) {
-                const time = new Date(nextRain.datetime).getHours() + ":00";
-                const p = nextRain.precipitation || "~";
-                msg = nextRain.condition === 'snowy' 
-                    ? this._t('advice_snow_soon', {time}) 
-                    : this._t('advice_rain_soon', {time, val: p});
-                level = "warn";
-            }
-            // 5. BIEŻĄCE WARUNKI
-            else if (['rainy', 'pouring'].includes(condition)) {
-                msg = this._t('advice_rain_now', {val: wObj.attributes.precipitation || "~"}); 
-                level = "warn";
-            }
-            else if (['snowy', 'snowy-rainy'].includes(condition)) {
-                msg = this._t('advice_snow_now'); 
-                level = "warn";
-            }
-            // 6. UV (LATO)
-            else if (uvVal !== null && uvVal > 6) {
-                msg = this._t('alert_uv_high', {val: uvVal}); 
-                level = "warn";
-            }
-            // 7. TEMPERATURA + WIATR (ZIMA)
-            else if (temp < 10 && windSpeed > 20) {
-                // Jest zimno i wieje - Wind Chill
-                msg = this._t('advice_cold_wind', {val: temp});
-            }
-            else if (temp < 5) {
-                msg = this._t('advice_cold', {val: temp});
-            } else if (temp > 28) {
-                msg = this._t('advice_hot', {val: temp}); 
-                level = "warn";
-            } 
-            // 8. STABILNIE
-            else {
-                msg = this._t('advice_nice', {val: temp});
-            }
+        else if (uvVal !== null && uvVal > 6) {
+            msg = this._t('alert_uv_high', {val: uvVal});
+            level = "warn";
         }
-        
-        // Append Gaming status
+        else {
+            // Simple status: condition + forecast temperature
+            const condKey = condition.replace(/-/g, '_');
+            const condText = this._t(condKey) || condition;
+            msg = `${condText} · Forecast ${temp}${tempUnit}`;
+        }
+
         if (isGaming && level === 'normal') {
             msg = this._t('advice_gaming');
         }
@@ -419,7 +423,7 @@ class ForkUHouseCard extends HTMLElement {
         const statusEl = this.shadowRoot.querySelector('.footer-content');
         const footer = this.shadowRoot.querySelector('.footer');
 
-        if (medianEl) medianEl.innerHTML = `${this._t('home_median')}: <b>${median.toFixed(1)}°C</b>`;
+        if (medianEl) medianEl.innerHTML = `${this._t('home_median')}: <b>${median.toFixed(1)}</b>`;
         if (statusEl) statusEl.innerHTML = msg;
         if (footer) footer.setAttribute('data-status', level);
     }
@@ -527,6 +531,8 @@ class ForkUHouseCard extends HTMLElement {
           .is-optimal .badge-dot { background: var(--color-opt); box-shadow: 0 0 5px var(--color-opt); }
           .is-warm .badge-dot { background: var(--color-warm); box-shadow: 0 0 5px var(--color-warm); }
           .is-hot .badge-dot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
+          .badge.unit-kw { background: rgba(40, 20, 60, 0.75); border-color: rgba(160, 120, 255, 0.25); }
+          .badge.unit-pct { background: rgba(15, 40, 45, 0.75); border-color: rgba(80, 220, 220, 0.25); }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
           .badge-name { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
           .badge-val { font-size: 0.80rem; font-weight: 700; color: #fff; }
