@@ -146,6 +146,7 @@ class ForkUHouseCard extends HTMLElement {
   
     set hass(hass) {
       this._hass = hass;
+      this._subscribeTemplates();
       this._updateData();
     }
 
@@ -168,6 +169,11 @@ class ForkUHouseCard extends HTMLElement {
     disconnectedCallback() {
       if (this._resizeObserver) this._resizeObserver.disconnect();
       if (this._animationFrame) cancelAnimationFrame(this._animationFrame);
+      // Cleanup template subscriptions
+      if (this._templateSubs) {
+        Object.values(this._templateSubs).forEach(s => s.unsub && s.unsub());
+        this._templateSubs = {};
+      }
     }
 
      // --- NOWA LOGIKA WYBORU OBRAZKA ---
@@ -276,8 +282,46 @@ class ForkUHouseCard extends HTMLElement {
       }
     }
   
-    _resolveBadgeName(room) {
-      // If name_entity is set, use that entity's friendly_name or state as the badge name
+    _isTemplate(str) {
+      return typeof str === 'string' && str.includes('{{') && str.includes('}}');
+    }
+
+    _subscribeTemplates() {
+      if (!this._hass || !this._config) return;
+      if (!this._templateResults) this._templateResults = {};
+
+      const rooms = this._config.rooms || [];
+      rooms.forEach((room, idx) => {
+        if (!this._isTemplate(room.name)) return;
+        const key = `name_${idx}`;
+        // Already subscribed with same template
+        if (this._templateSubs && this._templateSubs[key]?.template === room.name) return;
+
+        if (!this._templateSubs) this._templateSubs = {};
+        // Unsubscribe previous if template changed
+        if (this._templateSubs[key]?.unsub) {
+          this._templateSubs[key].unsub();
+        }
+
+        this._hass.connection.subscribeMessage(
+          (result) => {
+            this._templateResults[key] = result.result;
+            this._updateData();
+          },
+          { type: 'render_template', template: room.name }
+        ).then(unsub => {
+          this._templateSubs[key] = { unsub, template: room.name };
+        });
+      });
+    }
+
+    _resolveBadgeName(room, idx) {
+      // Jinja2 template in name field
+      if (this._isTemplate(room.name)) {
+        const key = `name_${idx}`;
+        return this._templateResults?.[key] || room.name;
+      }
+      // name_entity: pull name from another entity
       if (room.name_entity && this._hass) {
         const nameState = this._hass.states[room.name_entity];
         if (nameState) {
@@ -350,7 +394,7 @@ class ForkUHouseCard extends HTMLElement {
         const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
         const displayVal = this._formatValue(room.value, unit);
-        const badgeName = this._resolveBadgeName(room);
+        const badgeName = this._resolveBadgeName(room, idx);
         const hasTap = room.tap_action?.action !== 'none';
         const cursorStyle = hasTap || !room.tap_action ? 'cursor: pointer;' : '';
         return `
