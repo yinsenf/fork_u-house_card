@@ -216,8 +216,10 @@ class ForkUHouseCard extends HTMLElement {
                 weatherSuffix = 'hail';
             } else if (s === 'fog') {
                 weatherSuffix = 'fog';
+            } else if (['cloudy', 'partlycloudy', 'overcast'].includes(s)) {
+                weatherSuffix = 'overcast';
             }
-            // Sunny, cloudy, partlycloudy -> weatherSuffix pozostaje null (czyli fallback do season_day.png)
+            // Sunny, clear-night -> weatherSuffix pozostaje null (czyli fallback do season_day.png)
         }
 
         // 5. Sprawdzenie Boolean w Configu
@@ -226,8 +228,8 @@ class ForkUHouseCard extends HTMLElement {
             const configKey     = `img_${season}_${timeOfDay}_${weatherSuffix}`;
             const configKey_alt = `img_${season}_${weatherSuffix}_${timeOfDay}`;
             
-            // Jeśli w YAML jest: img_winter_day_rainy: true
-            if (this._config[configKey] === true || this._config[configKey_alt] === true) {
+            // overcast 默认启用，其余需在 YAML 中配置为 true
+            if (weatherSuffix === 'overcast' || this._config[configKey] === true || this._config[configKey_alt] === true) {
                 return `${path}${season}_${weatherSuffix}_${timeOfDay}.png`;
             }
         }
