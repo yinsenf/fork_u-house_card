@@ -321,18 +321,6 @@ class ForkUHouseCard extends HTMLElement {
         const key = `name_${idx}`;
         return this._templateResults?.[key] || room.name;
       }
-      // name_entity: pull name from another entity
-      if (room.name_entity && this._hass) {
-        const nameState = this._hass.states[room.name_entity];
-        if (nameState) {
-          if (room.name_template) {
-            return room.name_template
-              .replace('{state}', nameState.state)
-              .replace('{friendly_name}', nameState.attributes.friendly_name || '');
-          }
-          return nameState.attributes.friendly_name || nameState.state;
-        }
-      }
       return room.name || '';
     }
 
