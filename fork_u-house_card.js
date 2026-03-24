@@ -383,10 +383,8 @@ class ForkUHouseCard extends HTMLElement {
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
         const displayVal = this._formatValue(room.value, unit);
         const badgeName = this._resolveBadgeName(room, idx);
-        const hasTap = room.tap_action?.action !== 'none';
-        const cursorStyle = hasTap || !room.tap_action ? 'cursor: pointer;' : '';
         return `
-          <div class="badge ${colorClass} ${unitClass}" data-room-idx="${idx}" style="top: ${top}%; left: ${left}%; ${cursorStyle}">
+          <div class="badge ${colorClass} ${unitClass}" data-room-idx="${idx}" style="top: ${top}%; left: ${left}%;">
             <div class="badge-dot"></div>
             <div class="badge-content">
               <span class="badge-name">${badgeName}</span>
@@ -644,9 +642,9 @@ class ForkUHouseCard extends HTMLElement {
           .is-hot .badge-dot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
           .badge.unit-kw { background: rgba(40, 20, 60, 0.75); border-color: rgba(160, 120, 255, 0.25); }
           .badge.unit-pct { background: rgba(15, 40, 45, 0.75); border-color: rgba(80, 220, 220, 0.25); }
-          .badge[data-room-idx] { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-          .badge[data-room-idx]:hover { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
-          .badge[data-room-idx]:active { transform: translate(-50%, -50%) scale(0.96); }
+          .badge[data-room-idx] { cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
+          .badge[data-room-idx]:hover { border-color: rgba(255,255,255,0.35); box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.08); background: rgba(30, 30, 35, 0.85); }
+          .badge[data-room-idx]:active { background: rgba(40, 40, 50, 0.9); border-color: rgba(255,255,255,0.45); }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
           .badge-name { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
           .badge-val { font-size: 0.80rem; font-weight: 700; color: #fff; }
