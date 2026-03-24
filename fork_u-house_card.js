@@ -1,8 +1,10 @@
 /**
- * Fork_U-House_Card v12.0 (AI Storyteller Edition)
+ * Fork_U-House_Card v12.1
  * * FEATURE: Long, descriptive, "AI-like" status messages with context & reasoning.
  * * FEATURE: Pollen support restored & integrated into advice logic.
  * * FEATURE: Wind Chill logic (Wind + Cold temp = specific advice).
+ * * FEATURE: Badge tap_action support (navigate, more-info, url, call-service, none).
+ * * FEATURE: Dynamic badge names via name_entity / name_template.
  * * VISUALS: Prism Classic (Stars, Fog, No-Glow Rain) + Gaming Ambient Mode.
  */
 
@@ -144,6 +146,7 @@ class ForkUHouseCard extends HTMLElement {
   
     set hass(hass) {
       this._hass = hass;
+      this._subscribeTemplates();
       this._updateData();
     }
 
@@ -166,6 +169,11 @@ class ForkUHouseCard extends HTMLElement {
     disconnectedCallback() {
       if (this._resizeObserver) this._resizeObserver.disconnect();
       if (this._animationFrame) cancelAnimationFrame(this._animationFrame);
+      // Cleanup template subscriptions
+      if (this._templateSubs) {
+        Object.values(this._templateSubs).forEach(s => s.unsub && s.unsub());
+        this._templateSubs = {};
+      }
     }
 
      // --- NOWA LOGIKA WYBORU OBRAZKA ---
@@ -274,25 +282,128 @@ class ForkUHouseCard extends HTMLElement {
       }
     }
   
+    _isTemplate(str) {
+      return typeof str === 'string' && str.includes('{{') && str.includes('}}');
+    }
+
+    _subscribeTemplates() {
+      if (!this._hass || !this._config) return;
+      if (!this._templateResults) this._templateResults = {};
+
+      const rooms = this._config.rooms || [];
+      rooms.forEach((room, idx) => {
+        if (!this._isTemplate(room.name)) return;
+        const key = `name_${idx}`;
+        // Already subscribed with same template
+        if (this._templateSubs && this._templateSubs[key]?.template === room.name) return;
+
+        if (!this._templateSubs) this._templateSubs = {};
+        // Unsubscribe previous if template changed
+        if (this._templateSubs[key]?.unsub) {
+          this._templateSubs[key].unsub();
+        }
+
+        this._hass.connection.subscribeMessage(
+          (result) => {
+            this._templateResults[key] = result.result;
+            this._updateData();
+          },
+          { type: 'render_template', template: room.name }
+        ).then(unsub => {
+          this._templateSubs[key] = { unsub, template: room.name };
+        });
+      });
+    }
+
+    _resolveBadgeName(room, idx) {
+      // Jinja2 template in name field
+      if (this._isTemplate(room.name)) {
+        const key = `name_${idx}`;
+        return this._templateResults?.[key] || room.name;
+      }
+      return room.name || '';
+    }
+
+    _handleBadgeTap(room) {
+      if (!room.tap_action) {
+        // Default: open more-info dialog for the badge entity
+        const event = new CustomEvent('hass-more-info', {
+          bubbles: true, composed: true,
+          detail: { entityId: room.entity }
+        });
+        this.dispatchEvent(event);
+        return;
+      }
+      const action = room.tap_action;
+      switch (action.action) {
+        case 'navigate':
+          if (action.navigation_path) {
+            history.pushState(null, '', action.navigation_path);
+            const navEvent = new CustomEvent('location-changed', {
+              bubbles: true, composed: true,
+              detail: { replace: false }
+            });
+            window.dispatchEvent(navEvent);
+          }
+          break;
+        case 'url':
+          if (action.url_path) window.open(action.url_path, '_blank');
+          break;
+        case 'more-info':
+          {
+            const entityId = action.entity || room.entity;
+            const event = new CustomEvent('hass-more-info', {
+              bubbles: true, composed: true,
+              detail: { entityId }
+            });
+            this.dispatchEvent(event);
+          }
+          break;
+        case 'call-service':
+          if (action.service && this._hass) {
+            const [domain, service] = action.service.split('.');
+            this._hass.callService(domain, service, action.service_data || {});
+          }
+          break;
+        case 'none':
+          break;
+        default:
+          break;
+      }
+    }
+
     _updateBadges(rooms) {
       const container = this.shadowRoot.querySelector('.badges-layer');
       if (!container) return;
-      container.innerHTML = rooms.map(room => {
+      container.innerHTML = rooms.map((room, idx) => {
         if (!room.valid || room.value === 0) return '';
         const top = room.y ?? 50; const left = room.x ?? 50;
         const unit = room.unit || '°C';
         const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
         const displayVal = this._formatValue(room.value, unit);
+        const badgeName = this._resolveBadgeName(room, idx);
+        const hasTap = room.tap_action?.action !== 'none';
+        const cursorStyle = hasTap || !room.tap_action ? 'cursor: pointer;' : '';
         return `
-          <div class="badge ${colorClass} ${unitClass}" style="top: ${top}%; left: ${left}%;">
+          <div class="badge ${colorClass} ${unitClass}" data-room-idx="${idx}" style="top: ${top}%; left: ${left}%; ${cursorStyle}">
             <div class="badge-dot"></div>
             <div class="badge-content">
-              <span class="badge-name">${room.name}</span>
+              <span class="badge-name">${badgeName}</span>
               <span class="badge-val">${displayVal}</span>
             </div>
           </div>`;
       }).join('');
+
+      // Attach click handlers
+      container.querySelectorAll('.badge[data-room-idx]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(el.dataset.roomIdx, 10);
+          const room = rooms[idx];
+          if (room) this._handleBadgeTap(room);
+        });
+      });
     }
 
     _formatValue(val, unit) {
@@ -533,6 +644,9 @@ class ForkUHouseCard extends HTMLElement {
           .is-hot .badge-dot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
           .badge.unit-kw { background: rgba(40, 20, 60, 0.75); border-color: rgba(160, 120, 255, 0.25); }
           .badge.unit-pct { background: rgba(15, 40, 45, 0.75); border-color: rgba(80, 220, 220, 0.25); }
+          .badge[data-room-idx] { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+          .badge[data-room-idx]:hover { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+          .badge[data-room-idx]:active { transform: translate(-50%, -50%) scale(0.96); }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
           .badge-name { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
           .badge-val { font-size: 0.80rem; font-weight: 700; color: #fff; }
