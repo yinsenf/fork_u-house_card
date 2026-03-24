@@ -654,9 +654,9 @@ class ForkUHouseCard extends HTMLElement {
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
               background: rgba(10, 10, 15, 0.25); backdrop-filter: blur(15px);
-              border-top: 1px solid rgba(255,255,255,0.05); padding: 8px 16px;
+              border-top: 1px solid rgba(255,255,255,0.05); padding: 6px 16px;
               display: flex; align-items: center; gap: 12px; box-sizing: border-box; transition: background 0.3s;
-              min-height: 40px;
+              min-height: 32px;
           }
           .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.65); border-top-color: var(--color-warm); }
           .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.65); border-top-color: var(--color-hot); }
