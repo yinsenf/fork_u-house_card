@@ -392,6 +392,12 @@ class ForkUHouseCard extends HTMLElement {
     _updateBadges(rooms) {
       const container = this.shadowRoot.querySelector('.badges-layer');
       if (!container) return;
+
+      // Build a fingerprint of current badge data to avoid unnecessary DOM rebuilds
+      const fingerprint = rooms.map((r, i) => r.valid && r.value !== 0 ? `${i}:${r.value}:${r.unit||'°C'}:${r.color_mode||'normal'}` : '').join('|');
+      if (this._badgeFingerprint === fingerprint) return;
+      this._badgeFingerprint = fingerprint;
+
       let validIdx = 0;
       const validTotal = rooms.filter(r => r.valid && r.value !== 0).length;
       container.innerHTML = rooms.map((room, idx) => {
@@ -564,9 +570,11 @@ class ForkUHouseCard extends HTMLElement {
         const statusEl = this.shadowRoot.querySelector('.footer-content');
         const footer = this.shadowRoot.querySelector('.footer');
 
-        if (medianEl) medianEl.innerHTML = `${this._t('home_median')}: <b>${median.toFixed(1)}</b>`;
-        if (statusEl) statusEl.innerHTML = msg;
-        if (footer) footer.setAttribute('data-status', level);
+        // Only update footer DOM when content actually changes
+        const medianHtml = `${this._t('home_median')}: <b>${median.toFixed(1)}</b>`;
+        if (medianEl && medianEl.innerHTML !== medianHtml) medianEl.innerHTML = medianHtml;
+        if (statusEl && statusEl.innerHTML !== msg) statusEl.innerHTML = msg;
+        if (footer && footer.getAttribute('data-status') !== level) footer.setAttribute('data-status', level);
     }
 
     _getStateVal(id) {
