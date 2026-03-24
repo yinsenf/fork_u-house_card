@@ -582,15 +582,15 @@ class ForkUHouseCard extends HTMLElement {
           .badges-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
           .badge {
               position: absolute; transform: translate(-50%, -50%);
-              padding: 8px 14px;
-              border-radius: 16px;
+              padding: 4px 10px;
+              border-radius: 12px;
               background: linear-gradient(135deg, rgba(28, 28, 34, 0.25) 0%, rgba(20, 20, 25, 0.20) 100%);
               backdrop-filter: blur(3px);
               border: 1px solid rgba(255,255,255,0.12);
               box-shadow: 0 4px 10px rgba(0,0,0,0.45);
-              display: flex; align-items: center; gap: 8px; pointer-events: auto; white-space: nowrap;
+              display: flex; align-items: center; gap: 6px; pointer-events: auto; white-space: nowrap;
           }
-          .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
+          .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
           .is-cold .badge-dot { background: var(--color-cold); box-shadow: 0 0 5px var(--color-cold); }
           .is-optimal .badge-dot { background: var(--color-opt); box-shadow: 0 0 5px var(--color-opt); }
           .is-warm .badge-dot { background: var(--color-warm); box-shadow: 0 0 5px var(--color-warm); }
