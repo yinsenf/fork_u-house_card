@@ -117,7 +117,7 @@ class ForkUHouseCard extends HTMLElement {
     static getStubConfig() {
       return {
         language: "pl",
-        image_path: "/local/community/fork_u-house_card/images/",
+        image: "/local/community/fork_u-house_card/images/",
         
         // Entities
         weather_entity: "weather.forecast_home",
@@ -178,7 +178,7 @@ class ForkUHouseCard extends HTMLElement {
 
      // --- NOWA LOGIKA WYBORU OBRAZKA ---
     _calculateImage() {
-        const path = this._config.image_path || this._config.image || "/local/community/fork_u-house_card/images/";
+        const path = this._config.image_path || "/local/community/fork_u-house_card/images/";
         
         // 1. Pora Dnia
         const sunState = this._hass.states[this._config.sun_entity || 'sun.sun']?.state || 'above_horizon';
