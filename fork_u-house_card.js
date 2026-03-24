@@ -38,7 +38,7 @@ const TRANSLATIONS = {
         advice_snow_now: "🌨️ SNOWING: Snow is falling right now. Enjoy the view, but dress warmly if you head out.",
         
         // 5. UV / SUN
-        alert_uv_high: "☀️ HIGH UV RADIATION: The UV Index is {val}. Unprotected skin can burn quickly. Use sunscreen and wear sunglasses if you go out.",
+        alert_uv_high: "☀️ HIGH UV ({val}): Skin can burn quickly. Use sunscreen and wear sunglasses.",
         
         // 6. TEMPERATURE + WIND (Wind Chill)
         advice_cold_wind: "🥶 WIND CHILL WARNING: It's {val}°C, but the strong wind makes it feel much colder. Wear windproof layers and a hat.",
@@ -78,7 +78,7 @@ const TRANSLATIONS = {
         advice_snow_now: "<span class='value-pill pill-1'>🌨️ <b>ŚNIEG</b></span>  Na zewnątrz sypie śnieg. Jest <span class='value-pill'><b>malowniczo</b></span>, ale pamiętaj o ciepłym ubraniu i czapce.",
         
         // 5. UV
-        alert_uv_high: "<span class='value-pill pill-1'>☀️ <b>PROMIENIOWANIE</b></span>  Indeks UV wynosi <span class='value-pill'><b>{val}</b></span>. Skóra może ulec poparzeniu. Koniecznie użyj kremu z filtrem i okularów przeciwsłonecznych.",
+        alert_uv_high: "<span class='value-pill pill-1'>☀️ <b>PROMIENIOWANIE</b></span>  UV: <span class='value-pill'><b>{val}</b></span>. Użyj kremu z filtrem i okularów.",
         
         // 6. TEMPERATURA + WIATR
         advice_cold_wind: "<span class='value-pill pill-1'>🥶 <b>WIATR</b></span>  Jest <span class='value-pill'><b>{val}</b> °C</span>, ale silny wiatr sprawia, że temperatura odczuwalna jest znacznie niższa. Ubierz się „na cebulkę” i chroń uszy.",
@@ -734,7 +734,7 @@ class ForkUHouseCard extends HTMLElement {
           .footer-content { 
               font-size: 0.85rem; color: #ddd;
               white-space: normal; line-height: 1.8; 
-              display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; 
+              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
               /*
               overflow: hidden;
               */
