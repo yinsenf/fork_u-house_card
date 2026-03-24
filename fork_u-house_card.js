@@ -625,7 +625,7 @@ class ForkUHouseCard extends HTMLElement {
               padding: 8px 14px;
               border-radius: 16px;
               background: linear-gradient(135deg, rgba(28, 28, 34, 0.25) 0%, rgba(20, 20, 25, 0.20) 100%);
-              backdrop-filter: blur(10px);
+              backdrop-filter: blur(4px);
               border: 1px solid rgba(255,255,255,0.12);
               box-shadow: 0 4px 10px rgba(0,0,0,0.45);
               display: flex; align-items: center; gap: 8px; pointer-events: auto; white-space: nowrap;
@@ -635,15 +635,13 @@ class ForkUHouseCard extends HTMLElement {
           .is-optimal .badge-dot { background: var(--color-opt); box-shadow: 0 0 5px var(--color-opt); }
           .is-warm .badge-dot { background: var(--color-warm); box-shadow: 0 0 5px var(--color-warm); }
           .is-hot .badge-dot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
-          .badge.unit-kw { background: linear-gradient(135deg, rgba(50, 25, 75, 0.70) 0%, rgba(40, 20, 60, 0.65) 100%); border-color: rgba(160, 120, 255, 0.25); }
-          .badge.unit-pct { background: linear-gradient(135deg, rgba(20, 50, 55, 0.70) 0%, rgba(15, 40, 45, 0.65) 100%); border-color: rgba(80, 220, 220, 0.25); }
+          .badge.unit-kw { background: linear-gradient(135deg, rgba(50, 25, 75, 0.25) 0%, rgba(40, 20, 60, 0.20) 100%); border-color: rgba(160, 120, 255, 0.25); }
+          .badge.unit-pct { background: linear-gradient(135deg, rgba(20, 50, 55, 0.25) 0%, rgba(15, 40, 45, 0.20) 100%); border-color: rgba(80, 220, 220, 0.25); }
           .is-cold    { border-color: rgba(96,165,250,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(96,165,250,0.18); }
           .is-optimal { border-color: rgba(52,211,153,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(52,211,153,0.18); }
           .is-warm    { border-color: rgba(251,191,36,0.25);  box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(251,191,36,0.18); }
           .is-hot     { border-color: rgba(248,113,113,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 0 6px rgba(248,113,113,0.18); }
-          .badge[data-room-idx] { cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
-          .badge[data-room-idx]:hover { border-color: rgba(255,255,255,0.35); box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.08); background: rgba(30, 30, 35, 0.65); }
-          .badge[data-room-idx]:active { background: rgba(40, 40, 50, 0.7); border-color: rgba(255,255,255,0.45); }
+          .badge[data-room-idx] { cursor: pointer; }
           .badge-content { display: flex; flex-direction: column; line-height: 1; }
           .badge-name { font-size: 0.65rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; }
           .badge-val { font-size: 0.90rem; font-weight: 700; color: #fff; }
