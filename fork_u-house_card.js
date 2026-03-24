@@ -624,7 +624,7 @@ class ForkUHouseCard extends HTMLElement {
               position: absolute; transform: translate(-50%, -50%);
               padding: 8px 14px;
               border-radius: 16px;
-              background: linear-gradient(135deg, rgba(28, 28, 34, 0.70) 0%, rgba(20, 20, 25, 0.65) 100%);
+              background: linear-gradient(135deg, rgba(28, 28, 34, 0.25) 0%, rgba(20, 20, 25, 0.20) 100%);
               backdrop-filter: blur(10px);
               border: 1px solid rgba(255,255,255,0.12);
               box-shadow: 0 4px 10px rgba(0,0,0,0.45);
