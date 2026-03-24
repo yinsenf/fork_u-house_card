@@ -216,8 +216,10 @@ class ForkUHouseCard extends HTMLElement {
                 weatherSuffix = 'hail';
             } else if (s === 'fog') {
                 weatherSuffix = 'fog';
+            } else if (['cloudy', 'partlycloudy', 'overcast'].includes(s)) {
+                weatherSuffix = 'overcast';
             }
-            // Sunny, cloudy, partlycloudy -> weatherSuffix pozostaje null (czyli fallback do season_day.png)
+            // Sunny, clear-night -> weatherSuffix pozostaje null (czyli fallback do season_day.png)
         }
 
         // 5. Sprawdzenie Boolean w Configu
