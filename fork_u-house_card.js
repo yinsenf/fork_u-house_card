@@ -394,7 +394,7 @@ class ForkUHouseCard extends HTMLElement {
       switch(unit) {
         case '°F': return `${val.toFixed(0)}°F`;
         case '°C': return `${val.toFixed(1)}°C`;
-        case 'kW': return `${val.toFixed(2)}kW`;
+        case 'kW': return `${val.toFixed(1)}kW`;
         case 'W':  return `${val.toFixed(0)}W`;
         case '%':  return `${val.toFixed(0)}%`;
         default:   return `${val.toFixed(1)}${unit}`;
