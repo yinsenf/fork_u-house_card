@@ -226,6 +226,13 @@ class ForkUHouseCard extends HTMLElement {
       // Rooms & Median
       const roomsData = this._config.rooms.map(r => {
         const s = this._hass.states[r.entity];
+        if (r.type === 'climate') {
+          const climateState = s?.state || 'off';
+          if (climateState === 'off') return { ...r, value: null, valid: false };
+          const v = s ? parseFloat(s.attributes?.current_temperature) : null;
+          const hvacAction = s?.attributes?.hvac_action || climateState;
+          return { ...r, value: v, valid: !isNaN(v), hvac_action: hvacAction };
+        }
         const v = s ? parseFloat(s.state) : null;
         return { ...r, value: v, valid: !isNaN(v) };
       });
@@ -323,7 +330,7 @@ class ForkUHouseCard extends HTMLElement {
       if (!container) return;
 
       // Build a fingerprint of current badge data to avoid unnecessary DOM rebuilds
-      const fingerprint = rooms.map((r, i) => r.valid && r.value !== 0 ? `${i}:${r.value}:${r.unit||'°C'}:${r.color_mode||'normal'}` : '').join('|');
+      const fingerprint = rooms.map((r, i) => r.valid && r.value !== 0 ? `${i}:${r.value}:${r.unit||'°C'}:${r.color_mode||'normal'}:${r.hvac_action||''}` : '').join('|');
       if (this._badgeFingerprint === fingerprint) return;
       this._badgeFingerprint = fingerprint;
 
@@ -338,7 +345,9 @@ class ForkUHouseCard extends HTMLElement {
         const left = _pos.x;
         validIdx++;
         const unit = room.unit || '°C';
-        const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
+        const colorClass = room.type === 'climate'
+            ? this._getClimateColorClass(room.hvac_action)
+            : this._getColorClass(room.value, unit, room.color_mode || 'normal');
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
         const displayVal = this._formatValue(room.value, unit);
         const badgeName = this._resolveBadgeName(room);
@@ -413,6 +422,17 @@ class ForkUHouseCard extends HTMLElement {
         default:
           if (val < 19) return 'is-cold'; if (val < 23) return 'is-optimal';
           if (val < 25) return 'is-warm'; return 'is-hot';
+      }
+    }
+
+    _getClimateColorClass(hvacAction) {
+      switch(hvacAction) {
+        case 'cooling': return 'is-cold';
+        case 'heating': return 'is-hot';
+        case 'idle':    return 'is-optimal';
+        case 'drying':  return 'is-warm';
+        case 'fan':     return 'is-optimal';
+        default:        return 'is-optimal';
       }
     }
 
