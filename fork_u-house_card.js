@@ -10,7 +10,6 @@
 const TRANSLATIONS = {
     en: {
         loading: "Analyzing environmental data...",
-        home_median: "Home",
         
         // Conditions
         clear_night: "Clear Night", cloudy: "Cloudy", fog: "Fog", hail: "Hail",
@@ -95,7 +94,7 @@ class ForkUHouseCard extends HTMLElement {
         device_tracker_entity: "device_tracker.location",  // when 'home', use _home variant of background image
         device_tracker_home_suffix: "_tesla",  // suffix appended to image name when tracker is 'home'
 
-        rooms: [{ name: "Salon", entity: "sensor.salon_temp", x: 50, y: 50, weight: 1 }]
+        rooms: [{ name: "Salon", entity: "sensor.salon_temp", x: 50, y: 50 }]
       };
     }
   
@@ -237,19 +236,11 @@ class ForkUHouseCard extends HTMLElement {
         return { ...r, value: v, valid: !isNaN(v) };
       });
       
-      const tempUnits = ['°C', '°F'];
-      const weighted = roomsData.filter(r => r.valid && (r.weight === undefined || r.weight > 0) && tempUnits.includes(r.unit || '°C')).map(r => r.value).sort((a,b)=>a-b);
-      let median = 0;
-      if (weighted.length > 0) {
-        const mid = Math.floor(weighted.length/2);
-        median = weighted.length % 2 !== 0 ? weighted[mid] : (weighted[mid-1]+weighted[mid])/2;
-      }
-  
       // Updates
       this._updateBadges(roomsData);
       this._handleGamingMode();
       this._handleDayNight();
-      this._generateAIStatus(median);
+      this._generateAIStatus();
   
       // Animation Loop
       if (!this._animationFrame && this._canvas) {
@@ -455,7 +446,7 @@ class ForkUHouseCard extends HTMLElement {
     }
 
     // --- STATUS LOGIC (weather API forecast kept, AI narratives removed) ---
-    _generateAIStatus(median) {
+    _generateAIStatus() {
         const wObj = this._hass.states[this._config.weather_entity];
         if (!wObj) return;
 
@@ -515,13 +506,8 @@ class ForkUHouseCard extends HTMLElement {
             msg = this._t('advice_gaming');
         }
 
-        const medianEl = this.shadowRoot.querySelector('.median-pill');
         const statusEl = this.shadowRoot.querySelector('.footer-content');
         const footer = this.shadowRoot.querySelector('.footer');
-
-        // Only update footer DOM when content actually changes
-        const medianHtml = `${this._t('home_median')}: <b>${median.toFixed(1)}</b>`;
-        if (medianEl && medianEl.innerHTML !== medianHtml) medianEl.innerHTML = medianHtml;
         if (statusEl && statusEl.innerHTML !== msg) statusEl.innerHTML = msg;
         if (footer && footer.getAttribute('data-status') !== level) footer.setAttribute('data-status', level);
     }
@@ -642,13 +628,13 @@ class ForkUHouseCard extends HTMLElement {
           
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
-              background: rgba(10, 10, 15, 0.40); backdrop-filter: blur(18px);
-              border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 16px;
+              background: rgba(10, 10, 15, 0.20); backdrop-filter: blur(12px);
+              border-top: none; padding: 4px 16px;
               display: flex; align-items: center; gap: 12px; box-sizing: border-box; transition: background 0.3s;
-              min-height: 38px;
+              min-height: 28px;
           }
-          .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.65); border-top-color: var(--color-warm); }
-          .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.65); border-top-color: var(--color-hot); }
+          .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.35); }
+          .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.35); }
 
           .value-pill { 
               background: rgba(20, 20, 25, 0.75); 
@@ -666,25 +652,6 @@ class ForkUHouseCard extends HTMLElement {
               margin-right: 5px;
           }
           .value-pill b { color: #fff; }
-          .median-pill {
-              display: inline-flex;
-              align-items: center;
-              background: rgba(20, 20, 25, 0.75); 
-              backdrop-filter: blur(8px);
-              border: 1px solid rgba(255,255,255,0.15);
-              box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-              padding: 4px 8px; 
-              border-radius: 20px; 
-              font-size: 0.8rem; 
-              color: rgba(255, 255, 255, 0.6);
-              white-space: nowrap; 
-              flex-shrink: 0; 
-              align-self: flex-start; 
-              margin-top: 2px;
-              transition: all 0.2s ease;
-          }
-          .median-pill b { color: #fff; }
-          
           /* Allow multi-line text for verbose AI messages */
           .footer-content { 
               font-size: 0.85rem; color: #ddd;
@@ -707,7 +674,6 @@ class ForkUHouseCard extends HTMLElement {
           <canvas id="weatherCanvas"></canvas>
           <div class="badges-layer"></div>
           <div class="footer" data-status="normal">
-              <div class="median-pill">Dom: --</div>
               <div class="footer-content">${this._t('loading')}</div>
           </div>
         </div>
