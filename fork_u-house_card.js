@@ -10,7 +10,6 @@
 const TRANSLATIONS = {
     en: {
         loading: "Analyzing environmental data...",
-        home_median: "Home",
         
         // Conditions
         clear_night: "Clear Night", cloudy: "Cloudy", fog: "Fog", hail: "Hail",
@@ -515,13 +514,8 @@ class ForkUHouseCard extends HTMLElement {
             msg = this._t('advice_gaming');
         }
 
-        const medianEl = this.shadowRoot.querySelector('.median-pill');
         const statusEl = this.shadowRoot.querySelector('.footer-content');
         const footer = this.shadowRoot.querySelector('.footer');
-
-        // Only update footer DOM when content actually changes
-        const medianHtml = `${this._t('home_median')}: &nbsp;<b>${median.toFixed(1)}</b>`;
-        if (medianEl && medianEl.innerHTML !== medianHtml) medianEl.innerHTML = medianHtml;
         if (statusEl && statusEl.innerHTML !== msg) statusEl.innerHTML = msg;
         if (footer && footer.getAttribute('data-status') !== level) footer.setAttribute('data-status', level);
     }
@@ -666,26 +660,6 @@ class ForkUHouseCard extends HTMLElement {
               margin-right: 5px;
           }
           .value-pill b { color: #fff; }
-          .median-pill {
-              display: inline-flex;
-              align-items: center;
-              background: rgba(20, 20, 25, 0.75); 
-              backdrop-filter: blur(8px);
-              border: 1px solid rgba(255,255,255,0.15);
-              box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-              padding: 4px 12px;
-              border-radius: 20px;
-              font-size: 0.8rem;
-              letter-spacing: 0.3px;
-              color: rgba(255, 255, 255, 0.6);
-              white-space: nowrap; 
-              flex-shrink: 0; 
-              align-self: flex-start; 
-              margin-top: 2px;
-              transition: all 0.2s ease;
-          }
-          .median-pill b { color: #fff; }
-          
           /* Allow multi-line text for verbose AI messages */
           .footer-content { 
               font-size: 0.85rem; color: #ddd;
@@ -708,7 +682,6 @@ class ForkUHouseCard extends HTMLElement {
           <canvas id="weatherCanvas"></canvas>
           <div class="badges-layer"></div>
           <div class="footer" data-status="normal">
-              <div class="median-pill">Dom: --</div>
               <div class="footer-content">${this._t('loading')}</div>
           </div>
         </div>
