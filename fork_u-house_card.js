@@ -92,6 +92,9 @@ class ForkUHouseCard extends HTMLElement {
         wind_speed_entity: "sensor.wind_speed",
         wind_direction_entity: "sensor.wind_bearing",
 
+        device_tracker_entity: "device_tracker.location",  // when 'home', use _home variant of background image
+        device_tracker_home_suffix: "_tesla",  // suffix appended to image name when tracker is 'home'
+
         rooms: [{ name: "Salon", entity: "sensor.salon_temp", x: 50, y: 50, weight: 1 }]
       };
     }
@@ -142,7 +145,7 @@ class ForkUHouseCard extends HTMLElement {
         const month = now.getMonth() + 1;
         const day = now.getDate();
         if ((month === 12 && day >= 14) || (month === 1 && day <= 14)) {
-            return `${path}winter_xmas_${timeOfDay}.png`;
+            return this._applyDeviceTrackerSuffix(`${path}winter_xmas_${timeOfDay}.png`);
         }
 
         // 3. Sezon
@@ -183,12 +186,23 @@ class ForkUHouseCard extends HTMLElement {
             
             // overcast is enabled by default; others require explicit config
             if (weatherSuffix === 'overcast' || this._config[configKey] === true || this._config[configKey_alt] === true) {
-                return `${path}${season}_${weatherSuffix}_${timeOfDay}.png`;
+                return this._applyDeviceTrackerSuffix(`${path}${season}_${weatherSuffix}_${timeOfDay}.png`);
             }
         }
 
         // 6. Fallback (Neutralny)
-        return `${path}${season}_${timeOfDay}.png`;
+        return this._applyDeviceTrackerSuffix(`${path}${season}_${timeOfDay}.png`);
+    }
+
+    _applyDeviceTrackerSuffix(imageUrl) {
+        const trackerEntity = this._config.device_tracker_entity;
+        if (!trackerEntity) return imageUrl;
+        const trackerState = this._hass.states[trackerEntity]?.state;
+        if (trackerState === 'home') {
+            const suffix = this._config.device_tracker_home_suffix || '_tesla';
+            return imageUrl.replace(/\.png$/, `${suffix}.png`);
+        }
+        return imageUrl;
     }
 
     // --- DATA LOGIC ---
