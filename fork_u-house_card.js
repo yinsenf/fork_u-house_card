@@ -520,7 +520,7 @@ class ForkUHouseCard extends HTMLElement {
         const footer = this.shadowRoot.querySelector('.footer');
 
         // Only update footer DOM when content actually changes
-        const medianHtml = `${this._t('home_median')}: <b>${median.toFixed(1)}</b>`;
+        const medianHtml = `${this._t('home_median')}: &nbsp;<b>${median.toFixed(1)}</b>`;
         if (medianEl && medianEl.innerHTML !== medianHtml) medianEl.innerHTML = medianHtml;
         if (statusEl && statusEl.innerHTML !== msg) statusEl.innerHTML = msg;
         if (footer && footer.getAttribute('data-status') !== level) footer.setAttribute('data-status', level);
@@ -673,9 +673,10 @@ class ForkUHouseCard extends HTMLElement {
               backdrop-filter: blur(8px);
               border: 1px solid rgba(255,255,255,0.15);
               box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-              padding: 4px 8px; 
-              border-radius: 20px; 
-              font-size: 0.8rem; 
+              padding: 4px 12px;
+              border-radius: 20px;
+              font-size: 0.8rem;
+              letter-spacing: 0.3px;
               color: rgba(255, 255, 255, 0.6);
               white-space: nowrap; 
               flex-shrink: 0; 
