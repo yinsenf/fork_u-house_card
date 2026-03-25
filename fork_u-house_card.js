@@ -628,13 +628,13 @@ class ForkUHouseCard extends HTMLElement {
           
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
-              background: rgba(10, 10, 15, 0.40); backdrop-filter: blur(18px);
-              border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 16px;
+              background: rgba(10, 10, 15, 0.20); backdrop-filter: blur(12px);
+              border-top: none; padding: 4px 16px;
               display: flex; align-items: center; gap: 12px; box-sizing: border-box; transition: background 0.3s;
-              min-height: 38px;
+              min-height: 28px;
           }
-          .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.65); border-top-color: var(--color-warm); }
-          .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.65); border-top-color: var(--color-hot); }
+          .footer[data-status="warn"] { background: rgba(80, 50, 10, 0.35); }
+          .footer[data-status="danger"] { background: rgba(80, 20, 20, 0.35); }
 
           .value-pill { 
               background: rgba(20, 20, 25, 0.75); 
