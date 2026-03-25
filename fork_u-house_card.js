@@ -94,7 +94,7 @@ class ForkUHouseCard extends HTMLElement {
         device_tracker_entity: "device_tracker.location",  // when 'home', use _home variant of background image
         device_tracker_home_suffix: "_tesla",  // suffix appended to image name when tracker is 'home'
 
-        rooms: [{ name: "Salon", entity: "sensor.salon_temp", x: 50, y: 50, weight: 1 }]
+        rooms: [{ name: "Salon", entity: "sensor.salon_temp", x: 50, y: 50 }]
       };
     }
   
@@ -236,19 +236,11 @@ class ForkUHouseCard extends HTMLElement {
         return { ...r, value: v, valid: !isNaN(v) };
       });
       
-      const tempUnits = ['°C', '°F'];
-      const weighted = roomsData.filter(r => r.valid && (r.weight === undefined || r.weight > 0) && tempUnits.includes(r.unit || '°C')).map(r => r.value).sort((a,b)=>a-b);
-      let median = 0;
-      if (weighted.length > 0) {
-        const mid = Math.floor(weighted.length/2);
-        median = weighted.length % 2 !== 0 ? weighted[mid] : (weighted[mid-1]+weighted[mid])/2;
-      }
-  
       // Updates
       this._updateBadges(roomsData);
       this._handleGamingMode();
       this._handleDayNight();
-      this._generateAIStatus(median);
+      this._generateAIStatus();
   
       // Animation Loop
       if (!this._animationFrame && this._canvas) {
@@ -454,7 +446,7 @@ class ForkUHouseCard extends HTMLElement {
     }
 
     // --- STATUS LOGIC (weather API forecast kept, AI narratives removed) ---
-    _generateAIStatus(median) {
+    _generateAIStatus() {
         const wObj = this._hass.states[this._config.weather_entity];
         if (!wObj) return;
 
