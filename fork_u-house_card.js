@@ -599,8 +599,6 @@ class ForkUHouseCard extends HTMLElement {
               background: var(--card-background-color,var(--fork-u-bg));
               border-radius: var(--ha-card-border-radius,var(--ha-border-radius-lg,20px));
           }
-          @media (min-width: 900px) { .card { height: 500px; } }
-          @media (min-width: 1400px) { .card { height: 600px; } }
           .gradient-layer {
               background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 40px);
               position: absolute; top: 0; left: 0; width: 100%; height: 100%;
