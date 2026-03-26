@@ -94,6 +94,8 @@ class ForkUHouseCard extends HTMLElement {
         device_tracker_entity: "device_tracker.location",  // when 'home', use _home variant of background image
         device_tracker_home_suffix: "_tesla",  // suffix appended to image name when tracker is 'home'
 
+        climate_entity: "climate.home",  // show climate status in footer (right-aligned)
+
         rooms: [{ name: "Salon", entity: "sensor.salon_temp", x: 50, y: 50 }]
       };
     }
@@ -225,19 +227,13 @@ class ForkUHouseCard extends HTMLElement {
       // Rooms & Median
       const roomsData = this._config.rooms.map(r => {
         const s = this._hass.states[r.entity];
-        if (r.type === 'climate') {
-          const climateState = s?.state || 'off';
-          if (climateState === 'off') return { ...r, value: null, valid: false };
-          const v = s ? parseFloat(s.attributes?.current_temperature) : null;
-          const hvacAction = s?.attributes?.hvac_action || climateState;
-          return { ...r, value: v, valid: !isNaN(v), hvac_action: hvacAction };
-        }
         const v = s ? parseFloat(s.state) : null;
         return { ...r, value: v, valid: !isNaN(v) };
       });
       
       // Updates
       this._updateBadges(roomsData);
+      this._updateClimate();
       this._handleGamingMode();
       this._handleDayNight();
       this._generateAIStatus();
@@ -321,7 +317,7 @@ class ForkUHouseCard extends HTMLElement {
       if (!container) return;
 
       // Build a fingerprint of current badge data to avoid unnecessary DOM rebuilds
-      const fingerprint = rooms.map((r, i) => r.valid && r.value !== 0 ? `${i}:${r.value}:${r.unit||'°C'}:${r.color_mode||'normal'}:${r.hvac_action||''}` : '').join('|');
+      const fingerprint = rooms.map((r, i) => r.valid && r.value !== 0 ? `${i}:${r.value}:${r.unit||'°C'}:${r.color_mode||'normal'}` : '').join('|');
       if (this._badgeFingerprint === fingerprint) return;
       this._badgeFingerprint = fingerprint;
 
@@ -336,9 +332,7 @@ class ForkUHouseCard extends HTMLElement {
         const left = _pos.x;
         validIdx++;
         const unit = room.unit || '°C';
-        const colorClass = room.type === 'climate'
-            ? this._getClimateColorClass(room.hvac_action)
-            : this._getColorClass(room.value, unit, room.color_mode || 'normal');
+        const colorClass = this._getColorClass(room.value, unit, room.color_mode || 'normal');
         const unitClass = unit === 'kW' ? 'unit-kw' : unit === '%' ? 'unit-pct' : '';
         const displayVal = this._formatValue(room.value, unit);
         const badgeName = this._resolveBadgeName(room);
@@ -425,6 +419,38 @@ class ForkUHouseCard extends HTMLElement {
         case 'fan':     return 'is-optimal';
         default:        return 'is-optimal';
       }
+    }
+
+    _updateClimate() {
+      const el = this.shadowRoot.querySelector('.climate-info');
+      if (!el) return;
+      const entityId = this._config.climate_entity;
+      if (!entityId) { el.style.display = 'none'; return; }
+      const s = this._hass.states[entityId];
+      if (!s || s.state === 'off' || s.state === 'unavailable') {
+        el.style.display = 'none';
+        return;
+      }
+      const targetTemp = s.attributes?.temperature;
+      const unit = s.attributes?.temperature_unit || '°C';
+      const hvacAction = s.attributes?.hvac_action || s.state;
+      const colorClass = this._getClimateColorClass(hvacAction);
+      const dotEl = el.querySelector('.climate-dot');
+      const textEl = el.querySelector('.climate-text');
+      if (dotEl) {
+        dotEl.className = 'climate-dot';
+        dotEl.classList.add(colorClass);
+      }
+      if (textEl) {
+        textEl.textContent = targetTemp != null ? `${parseFloat(targetTemp).toFixed(0)}${unit}` : s.state;
+      }
+      el.style.display = 'flex';
+      el.onclick = () => {
+        this.dispatchEvent(new CustomEvent('hass-more-info', {
+          bubbles: true, composed: true,
+          detail: { entityId }
+        }));
+      };
     }
 
     _handleGamingMode() {
@@ -655,14 +681,24 @@ class ForkUHouseCard extends HTMLElement {
           }
           .value-pill b { color: #fff; }
           /* Allow multi-line text for verbose AI messages */
-          .footer-content { 
+          .footer-content {
               font-size: 0.85rem; color: #ddd;
-              white-space: normal; line-height: 1.8; 
-              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
+              white-space: normal; line-height: 1.8; flex: 1; min-width: 0;
+              display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
               /*
               overflow: hidden;
               */
           }
+          .climate-info {
+              display: none; align-items: center; gap: 5px; margin-left: auto;
+              cursor: pointer; white-space: nowrap; flex-shrink: 0;
+          }
+          .climate-dot { width: 6px; height: 6px; border-radius: 50%; }
+          .climate-dot.is-cold { background: var(--color-cold); box-shadow: 0 0 5px var(--color-cold); }
+          .climate-dot.is-optimal { background: var(--color-opt); box-shadow: 0 0 5px var(--color-opt); }
+          .climate-dot.is-warm { background: var(--color-warm); box-shadow: 0 0 5px var(--color-warm); }
+          .climate-dot.is-hot { background: var(--color-hot); box-shadow: 0 0 5px var(--color-hot); }
+          .climate-text { font-size: 0.80rem; font-weight: 600; color: #fff; }
         </style>
         <div class="card">
           <div class="bg-image"></div>
@@ -677,6 +713,10 @@ class ForkUHouseCard extends HTMLElement {
           <div class="badges-layer"></div>
           <div class="footer" data-status="normal">
               <div class="footer-content">${this._t('loading')}</div>
+              <div class="climate-info">
+                <div class="climate-dot"></div>
+                <span class="climate-text"></span>
+              </div>
           </div>
         </div>
       `;
