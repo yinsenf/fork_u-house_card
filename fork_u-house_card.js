@@ -432,7 +432,7 @@ class ForkUHouseCard extends HTMLElement {
         return;
       }
       const targetTemp = s.attributes?.temperature;
-      const unit = s.attributes?.temperature_unit || '°C';
+      const unit = s.attributes?.temperature_unit || this._hass.config?.unit_system?.temperature || '°C';
       const hvacAction = s.attributes?.hvac_action || s.state;
       const colorClass = this._getClimateColorClass(hvacAction);
       const dotEl = el.querySelector('.climate-dot');
