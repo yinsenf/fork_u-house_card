@@ -535,6 +535,17 @@ class ForkUHouseCard extends HTMLElement {
         const statusEl = this.shadowRoot.querySelector('.footer-content');
         const footer = this.shadowRoot.querySelector('.footer');
         if (statusEl && statusEl.innerHTML !== msg) statusEl.innerHTML = msg;
+        if (statusEl && !statusEl._clickBound) {
+            statusEl._clickBound = true;
+            statusEl.addEventListener('click', () => {
+                const entityId = this._config.weather_entity;
+                if (!entityId) return;
+                this.dispatchEvent(new CustomEvent('hass-more-info', {
+                    bubbles: true, composed: true,
+                    detail: { entityId }
+                }));
+            });
+        }
         if (footer && footer.getAttribute('data-status') !== level) footer.setAttribute('data-status', level);
     }
 
@@ -683,6 +694,7 @@ class ForkUHouseCard extends HTMLElement {
               font-size: 0.85rem; color: #ddd;
               white-space: normal; line-height: 1.8; flex: 1; min-width: 0;
               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+              cursor: pointer;
               /*
               overflow: hidden;
               */
