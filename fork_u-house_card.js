@@ -630,7 +630,7 @@ class ForkUHouseCard extends HTMLElement {
           
           .footer {
               position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
-              background: rgba(10, 10, 15, 0.20); backdrop-filter: blur(12px);
+              background: rgba(10, 10, 15, 0.20); backdrop-filter: blur(1px);
               border-top: none; padding: 4px 16px;
               display: flex; align-items: center; gap: 12px; box-sizing: border-box; transition: background 0.3s;
               min-height: 28px;
