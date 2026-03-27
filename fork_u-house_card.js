@@ -217,10 +217,7 @@ class ForkUHouseCard extends HTMLElement {
           this._currentImageUrl = newImage;
           const bgEl = this.shadowRoot.querySelector('.bg-image');
           if (bgEl) {
-              const img = new Image();
-              img.onload = () => { bgEl.style.backgroundImage = `url('${newImage}')`; };
-              img.onerror = () => { console.warn('fork-u-house-card: image not found:', newImage); };
-              img.src = newImage;
+              bgEl.style.backgroundImage = `url('${newImage}')`;
           }
       }
 
@@ -432,7 +429,7 @@ class ForkUHouseCard extends HTMLElement {
         return;
       }
       const targetTemp = s.attributes?.temperature;
-      const unit = s.attributes?.temperature_unit || '°C';
+      const unit = s.attributes?.temperature_unit || this._hass.config?.unit_system?.temperature || '°C';
       const hvacAction = s.attributes?.hvac_action || s.state;
       const colorClass = this._getClimateColorClass(hvacAction);
       const dotEl = el.querySelector('.climate-dot');
