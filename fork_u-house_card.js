@@ -217,10 +217,7 @@ class ForkUHouseCard extends HTMLElement {
           this._currentImageUrl = newImage;
           const bgEl = this.shadowRoot.querySelector('.bg-image');
           if (bgEl) {
-              const img = new Image();
-              img.onload = () => { bgEl.style.backgroundImage = `url('${newImage}')`; };
-              img.onerror = () => { console.warn('fork-u-house-card: image not found:', newImage); };
-              img.src = newImage;
+              bgEl.style.backgroundImage = `url('${newImage}')`;
           }
       }
 
