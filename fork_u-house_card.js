@@ -185,13 +185,24 @@ class ForkUHouseCard extends HTMLElement {
             const configKey     = `img_${season}_${timeOfDay}_${weatherSuffix}`;
             const configKey_alt = `img_${season}_${weatherSuffix}_${timeOfDay}`;
             
-            // overcast is enabled by default; others require explicit config
-            if (weatherSuffix === 'overcast' || this._config[configKey] === true || this._config[configKey_alt] === true) {
+            // weather images enabled by default; opt-out with img_spring_rainy_night: false
+            if (this._config[configKey] !== false && this._config[configKey_alt] !== false) {
                 return this._applyDeviceTrackerSuffix(`${path}${season}_${weatherSuffix}_${timeOfDay}.png`);
             }
         }
 
         // 6. Fallback (Neutralny)
+        return this._applyDeviceTrackerSuffix(`${path}${season}_${timeOfDay}.png`);
+    }
+
+    _calculateFallbackImage() {
+        const path = this._config.image_path || "/local/community/fork_u-house_card/images/";
+        const sunState = this._hass.states[this._config.sun_entity || 'sun.sun']?.state || 'above_horizon';
+        const timeOfDay = sunState === 'below_horizon' ? 'night' : 'day';
+        let season = this._hass.states[this._config.season_entity]?.state || 'summer';
+        const seasonMap = { 'wiosna': 'spring', 'lato': 'summer', 'jesień': 'autumn', 'zima': 'winter' };
+        if (seasonMap[season]) season = seasonMap[season];
+        season = season.toLowerCase();
         return this._applyDeviceTrackerSuffix(`${path}${season}_${timeOfDay}.png`);
     }
 
@@ -217,7 +228,17 @@ class ForkUHouseCard extends HTMLElement {
           this._currentImageUrl = newImage;
           const bgEl = this.shadowRoot.querySelector('.bg-image');
           if (bgEl) {
-              bgEl.style.backgroundImage = `url('${newImage}')`;
+              const img = new Image();
+              img.onload = () => { bgEl.style.backgroundImage = `url('${newImage}')`; };
+              img.onerror = () => {
+                  // Fallback: strip weather suffix, try base season image
+                  const fallback = this._calculateFallbackImage();
+                  if (fallback && fallback !== newImage) {
+                      this._currentImageUrl = fallback;
+                      bgEl.style.backgroundImage = `url('${fallback}')`;
+                  }
+              };
+              img.src = newImage;
           }
       }
 
