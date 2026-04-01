@@ -185,8 +185,8 @@ class ForkUHouseCard extends HTMLElement {
             const configKey     = `img_${season}_${timeOfDay}_${weatherSuffix}`;
             const configKey_alt = `img_${season}_${weatherSuffix}_${timeOfDay}`;
             
-            // overcast is enabled by default; others require explicit config
-            if (weatherSuffix === 'overcast' || this._config[configKey] === true || this._config[configKey_alt] === true) {
+            // weather images enabled by default; opt-out with img_spring_rainy_night: false
+            if (this._config[configKey] !== false && this._config[configKey_alt] !== false) {
                 return this._applyDeviceTrackerSuffix(`${path}${season}_${weatherSuffix}_${timeOfDay}.png`);
             }
         }
