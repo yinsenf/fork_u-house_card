@@ -195,6 +195,17 @@ class ForkUHouseCard extends HTMLElement {
         return this._applyDeviceTrackerSuffix(`${path}${season}_${timeOfDay}.png`);
     }
 
+    _calculateFallbackImage() {
+        const path = this._config.image_path || "/local/community/fork_u-house_card/images/";
+        const sunState = this._hass.states[this._config.sun_entity || 'sun.sun']?.state || 'above_horizon';
+        const timeOfDay = sunState === 'below_horizon' ? 'night' : 'day';
+        let season = this._hass.states[this._config.season_entity]?.state || 'summer';
+        const seasonMap = { 'wiosna': 'spring', 'lato': 'summer', 'jesień': 'autumn', 'zima': 'winter' };
+        if (seasonMap[season]) season = seasonMap[season];
+        season = season.toLowerCase();
+        return this._applyDeviceTrackerSuffix(`${path}${season}_${timeOfDay}.png`);
+    }
+
     _applyDeviceTrackerSuffix(imageUrl) {
         const trackerEntity = this._config.device_tracker_entity;
         if (!trackerEntity) return imageUrl;
@@ -217,7 +228,17 @@ class ForkUHouseCard extends HTMLElement {
           this._currentImageUrl = newImage;
           const bgEl = this.shadowRoot.querySelector('.bg-image');
           if (bgEl) {
-              bgEl.style.backgroundImage = `url('${newImage}')`;
+              const img = new Image();
+              img.onload = () => { bgEl.style.backgroundImage = `url('${newImage}')`; };
+              img.onerror = () => {
+                  // Fallback: strip weather suffix, try base season image
+                  const fallback = this._calculateFallbackImage();
+                  if (fallback && fallback !== newImage) {
+                      this._currentImageUrl = fallback;
+                      bgEl.style.backgroundImage = `url('${fallback}')`;
+                  }
+              };
+              img.src = newImage;
           }
       }
 
